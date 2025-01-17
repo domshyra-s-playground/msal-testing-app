@@ -4,8 +4,8 @@ import { BrowserCacheLocation, LogLevel, PublicClientApplication } from "@azure/
 const clientId = "TODO - Add clientId";
 const tenantId = "TODO";
 const redirectUri = "https://localhost:3000";
-const clientSecret = "https://localhost:3000";
-const testUsername = "https://localhost:3000";
+const clientSecret = "TODO";
+const testUsername = "TODO";
 
 export { clientId, tenantId, redirectUri, clientSecret, testUsername };
 
@@ -49,7 +49,7 @@ export const loginRequest = {
 	scopes: ["User.Read"],
 };
 
-export const ApiScopeDefault = `${clientId}/.default`;
-export const ApiScopeRead = `${clientId}/User.Read`;
+export const defaultScope = `${clientId}/.default`;
+export const readScope = `${clientId}/User.Read`;
 
-export const scopes = [ApiScopeDefault, ApiScopeRead];
+export const scopes = [defaultScope, readScope];

@@ -1,4 +1,3 @@
-import { ApiScopeDefault, msalConfig, scopes, tenantId } from "../msal/authConfig";
 import {
 	AuthenticationResult,
 	AuthenticationScheme,
@@ -9,6 +8,7 @@ import {
 	SilentRequest,
 } from "@azure/msal-browser";
 import { AuthorizationState, MsalAccessTokenEntity, MsalAccountEntity, MsalCredentialEntity, MsalRefreshTokenEntity } from "../msal/authorization";
+import { defaultScope, msalConfig, scopes, tenantId } from "../msal/authConfig";
 import { isLocalOrDevEnvironment, isProdEnv } from "@tools/env";
 import { useAppDispatch, useAppSelector } from "@redux/hooks";
 import { useCallback, useEffect } from "react";
@@ -67,7 +67,7 @@ export default function useAuthentication() {
 	 */
 	const acquireToken = useCallback(async () => {
 		const accessTokenConfig: SilentRequest = {
-			scopes: [ApiScopeDefault],
+			scopes: [defaultScope],
 			account: accounts[0],
 		};
 		try {

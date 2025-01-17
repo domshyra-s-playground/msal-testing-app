@@ -1,9 +1,14 @@
-import { login } from "src/msal/authorization";
+import { login, loginWithBearerToken } from "./msal/authorization";
+
 import { useState } from "react";
 
 const UnauthedPage = () => {
 	const [password, setPassword] = useState<string>("password");
+	const [bearerToken, setBearerToken] = useState<string>("");
 
+	const handleBearerToken = () => {
+		loginWithBearerToken(JSON.parse(bearerToken));
+	};
 	return (
 		<div>
 			<h1>Unauthed Page</h1>
@@ -15,6 +20,11 @@ const UnauthedPage = () => {
 			<br />
 			<br />
 			<a href="/authed">Go to Authed Page</a>
+			<br />
+			<br />
+			<br />
+			<button onClick={handleBearerToken}>Login with bearer token</button>
+			<input value={bearerToken} onChange={(e) => setBearerToken(e.target.value)} />
 		</div>
 	);
 };
