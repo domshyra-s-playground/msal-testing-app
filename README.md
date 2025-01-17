@@ -1,20 +1,19 @@
 # Msal testing project
 This app is meant to load a token call from `https://login.microsoftonline.com/your-tenantId/oauth2/v2.0/token` into the sessionStorage and then use Msal `loadExternalTokens` and have no redirect from the MS login page pop up. 
 
-
+This seems to not work on 2.2 or 3.0 versions of msal.
 
 # Prerequisites
 ## App Registration and Client ID
 
 To set up app registration and client ID, follow these steps:
 
-https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser 
 
 1. **Register the application in Azure AD**:
     - Go to the Azure portal.
     - Navigate to "Azure Active Directory" > "App registrations" > "New registration".
     - Enter a name for the application.
-    - Set the redirect URI to `https://localhost:3000` for local development and `https://deployedURL` for production.
+    - Set the redirect URI to `https://localhost:3000` for local development.
     - Click "Register".
 
 2. **Configure API permissions**:
@@ -28,8 +27,7 @@ https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/
     - Set the expiration period and click "Add".
     - Copy the client secret value and store it securely.
 
-4. **Update the `config.ts` file**:
-    - Replace the placeholders in the `config.ts` file with the actual values from the Azure portal.
+4. **Update the `authConfig.ts` file**:
     - Update `clientId`, `tenantId`, `redirectUri`, and other relevant fields.
 
 
@@ -57,7 +55,7 @@ mkcert -key-file ./.cert/key.pem -cert-file ./.cert/cert.pem "localhost"
 a new .cert folder should be next to the .vscode folder under the `MSAL-TEST-PROJ` folder.
 
 
-## Getting started 
+# Running the App
 make sure you have a call to get a bearer token in postman 
 Something to this effect 
 ![alt text](image.png)
