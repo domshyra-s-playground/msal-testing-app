@@ -10,11 +10,17 @@ import { Outlet } from "react-router-dom";
  */
 function Layout() {
 	const isAuthed = useIsAuthenticated();
-	const { accounts } = useMsal();
+	const { accounts, instance } = useMsal();
+
+	const logout = () => {
+		// Log the user out of their account
+		instance.logoutRedirect();
+	};
 
 	return (
 		<div className="App">
 			{isAuthed ? <h5>Hello, @ {accounts[0]?.name} </h5> : null}
+			{isAuthed ? <button onClick={() => logout()}>Logout</button> : null}
 			<Outlet />
 		</div>
 	);

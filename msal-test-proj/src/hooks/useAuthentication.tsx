@@ -71,6 +71,7 @@ export default function useAuthentication() {
 			account: accounts[0],
 		};
 		try {
+			console.log("calling acquireTokenSilent");
 			//MSAL uses a cache to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed.
 			//It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the acquireTokenSilent method.
 			const tokenResponse = await instance.acquireTokenSilent(accessTokenConfig);
@@ -143,9 +144,10 @@ async function setTokenForSelenium() {
 		Object.keys(seleniumAccessToken).length !== 0 &&
 		Object.keys(seleniumRefreshToken).length !== 0
 	) {
+		console.log("Setting token for Selenium");
 		const silentRequest: SilentRequest = {
 			scopes: scopes,
-			// authority: `https://login.microsoftonline.com/${Config.tenantId}`,
+			authority: `https://login.microsoftonline.com/${tenantId}`,
 			account: {
 				homeAccountId: seleniumAccount.homeAccountId,
 				environment: seleniumAccount.environment,
@@ -166,7 +168,7 @@ async function setTokenForSelenium() {
 			access_token: seleniumAccessToken.secret,
 			refresh_token: seleniumRefreshToken.secret,
 			expires_in: 3599,
-			// client_info: seleniumAccount.clientInfo,
+			client_info: seleniumAccount.clientInfo,
 		};
 
 		const loadTokenOptions: LoadTokenOptions = {
@@ -178,7 +180,6 @@ async function setTokenForSelenium() {
 
 		try {
 			await pca.initialize();
-			await pca.handleRedirectPromise();
 			const authenticationResult = await pca.getTokenCache().loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
 
 			console.log(JSON.stringify(authenticationResult));
@@ -186,6 +187,7 @@ async function setTokenForSelenium() {
 			window.sessionStorage.removeItem("seleniumAccountKey");
 			window.sessionStorage.removeItem("seleniumAccessTokenKey");
 			window.sessionStorage.removeItem("seleniumRefreshTokenKey");
+			console.log("Tokens set for Selenium");
 		} catch (error: any) {
 			console.error(error);
 		}

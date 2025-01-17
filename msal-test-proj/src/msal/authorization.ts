@@ -1,5 +1,5 @@
 import { IdTokenClaims, TenantProfile } from "@azure/msal-browser";
-import { clientId, clientSecret, msalConfig, readScope, testUsername } from "src/msal/authConfig";
+import { clientId, readScope } from "src/msal/authConfig";
 
 import { jwtDecode } from "jwt-decode";
 
@@ -71,35 +71,7 @@ interface msJwtPayload {
 	roles: string[];
 }
 
-const target = ["openid", "profile", "offline_access", readScope].join(" ");
-
-const login = async (password: string) => {
-	const tokenUrl = `${msalConfig.auth.authority}/oauth2/v2.0/token`;
-	const tokenScopes = ["openid", "profile", "offline_access", readScope].join(" ");
-
-	const response = await fetch(tokenUrl, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/x-www-form-urlencoded",
-			"Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept",
-			"Access-Control-Allow-Origin": "*",
-			Authorization: "Basic ",
-		},
-		body: new URLSearchParams({
-			grant_type: "password",
-			client_id: clientId,
-			client_secret: clientSecret,
-			scope: tokenScopes,
-			username: testUsername,
-			password: password,
-		}),
-	});
-
-	const data = await response.json();
-	console.log(data);
-
-	loginWithBearerToken(data);
-};
+const target = ["openid", "profile", "offline_access", readScope.toLowerCase()].join(" ");
 
 const loginWithBearerToken = async (token: AadTokenResponse) => {
 	const idToken = jwtDecode<msJwtPayload>(token.id_token);
@@ -113,7 +85,6 @@ const loginWithBearerToken = async (token: AadTokenResponse) => {
 
 	Object.keys(idToken).forEach((key) => {
 		if (key === "roles") {
-			console.log(key);
 			if (claimsDictionary[key]) {
 				claimsDictionary[key] = [...claimsDictionary[key], idToken[key]];
 			} else {
@@ -123,8 +94,6 @@ const loginWithBearerToken = async (token: AadTokenResponse) => {
 			claimsDictionary[key] = idToken[key as keyof msJwtPayload];
 		}
 	});
-
-	console.log(claimsDictionary);
 
 	const seleniumIdToken: MsalCredentialEntity = buildIdTokenEntity(token.id_token, homeAccountId, realm);
 	const seleniumAccount: MsalAccountEntity = buildAccountEntity(homeAccountId, realm, localAccountId, username, name, claimsDictionary);
@@ -212,4 +181,4 @@ const buildIdTokenEntity = (idToken: string, homeAccountId: string, realm: strin
 	};
 };
 
-export { login, loginWithBearerToken };
+export { loginWithBearerToken };
