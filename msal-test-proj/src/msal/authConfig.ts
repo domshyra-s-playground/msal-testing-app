@@ -1,10 +1,13 @@
 import { BrowserCacheLocation, LogLevel, PublicClientApplication } from "@azure/msal-browser";
 
+//TODO! input your own values below
 const clientId = "TODO - Add clientId";
 const tenantId = "TODO";
 const redirectUri = "https://localhost:3000";
+const clientSecret = "https://localhost:3000";
+const testUsername = "https://localhost:3000";
 
-export { clientId, tenantId, redirectUri };
+export { clientId, tenantId, redirectUri, clientSecret, testUsername };
 
 export const msalConfig = {
 	auth: {
@@ -46,7 +49,7 @@ export const loginRequest = {
 	scopes: ["User.Read"],
 };
 
-export const ApiScopeAdmin = `${clientId}/.default`;
+export const ApiScopeDefault = `${clientId}/.default`;
 export const ApiScopeRead = `${clientId}/User.Read`;
 
-export const scopes = [ApiScopeAdmin, ApiScopeRead];
+export const scopes = [ApiScopeDefault, ApiScopeRead];

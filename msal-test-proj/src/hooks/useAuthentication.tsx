@@ -1,4 +1,4 @@
-import { ApiScopeAdmin, msalConfig, scopes, tenantId } from "../msal/authConfig";
+import { ApiScopeDefault, msalConfig, scopes, tenantId } from "../msal/authConfig";
 import {
 	AuthenticationResult,
 	AuthenticationScheme,
@@ -67,7 +67,7 @@ export default function useAuthentication() {
 	 */
 	const acquireToken = useCallback(async () => {
 		const accessTokenConfig: SilentRequest = {
-			scopes: [ApiScopeAdmin],
+			scopes: [ApiScopeDefault],
 			account: accounts[0],
 		};
 		try {

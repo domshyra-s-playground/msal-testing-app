@@ -7,6 +7,8 @@ This app is meant to test if the msal loadTokensExternal function is still worki
 
 To set up app registration and client ID, follow these steps:
 
+https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser 
+
 1. **Register the application in Azure AD**:
     - Go to the Azure portal.
     - Navigate to "Azure Active Directory" > "App registrations" > "New registration".

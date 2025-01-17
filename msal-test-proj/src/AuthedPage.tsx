@@ -1,7 +1,7 @@
 const AuthedPage = () => {
 	return (
 		<div>
-			<h1>YOU made it! </h1>
+			<h1>YOU made it in!!!</h1>
 			<p>Welcome aboard! </p>
 		</div>
 	);
