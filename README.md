@@ -1,6 +1,8 @@
 # Msal testing project
 This app is meant to load a token call from `https://login.microsoftonline.com/your-tenantId/oauth2/v2.0/token` into the sessionStorage and then use Msal `loadExternalTokens` and have no redirect from the MS login page pop up. 
 
+The motivation is that way the selenium runner can get the tokens and load them into session storage to then run E2E tests with specific users. 
+
 This seems to not work on 2.2 or 3.0 versions of msal.
 
 # Prerequisites
