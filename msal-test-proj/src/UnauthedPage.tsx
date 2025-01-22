@@ -24,8 +24,10 @@ const UnauthedPage = () => {
 			<br />
 			<br />
 			<br />
-			<button onClick={handleBearerToken}>Set bearer token in sessionStorage</button>
-			<input value={bearerToken} onChange={(e) => setBearerToken(e.target.value)} />
+			<textarea value={bearerToken} onChange={(e) => setBearerToken(e.target.value)} rows={5} cols={40} />
+			<br />
+			<br />
+			<button onClick={handleBearerToken}>set sessionStorage & redirect</button>
 		</div>
 	);
 };
