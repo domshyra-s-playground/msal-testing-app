@@ -73,6 +73,11 @@ interface msJwtPayload {
 
 const target = ["openid", "profile", "offline_access", readScope.toLowerCase()].join(" ");
 
+
+/**
+ * Logs in with a bearer token.
+ * @param token - The token to log in with.
+ */
 const loginWithBearerToken = async (token: AadTokenResponse) => {
 	const idToken = jwtDecode<msJwtPayload>(token.id_token);
 	const localAccountId = idToken.oid;
@@ -106,6 +111,13 @@ const loginWithBearerToken = async (token: AadTokenResponse) => {
 	window.sessionStorage.setItem("seleniumRefreshTokenKey", JSON.stringify(seleniumRefreshToken));
 };
 
+/**
+ * Builds an access token entity.
+ * @param tokenResponse - The token response from the authentication server.
+ * @param homeAccountId - The home account ID.
+ * @param realm - The realm (tenant ID).
+ * @returns An object representing the access token entity.
+ */
 const buildAccessTokenEntity = (tokenResponse: AadTokenResponse, homeAccountId: string, realm: string): MsalAccessTokenEntity => {
 	const cachedAt = Math.floor(Date.now() / 1000).toString();
 	const expiresOn = (Math.floor(Date.now() / 1000) + tokenResponse.expires_in).toString();
@@ -126,6 +138,16 @@ const buildAccessTokenEntity = (tokenResponse: AadTokenResponse, homeAccountId: 
 	};
 };
 
+/**
+ * Builds an account entity.
+ * @param homeAccountId - The home account ID.
+ * @param realm - The realm (tenant ID).
+ * @param localAccountId - The local account ID.
+ * @param username - The username.
+ * @param name - The name of the user.
+ * @param claims - The claims associated with the account.
+ * @returns An object representing the account entity.
+ */
 const buildAccountEntity = (
 	homeAccountId: string,
 	realm: any,
@@ -154,6 +176,14 @@ const buildAccountEntity = (
 	};
 };
 
+/**
+ * Builds a refresh token entity.
+ * @param refreshToken - The refresh token.
+ * @param expiresIn - The expiration time in seconds.
+ * @param homeAccountId - The home account ID.
+ * @param realm - The realm (tenant ID).
+ * @returns An object representing the refresh token entity.
+ */
 const buildRefreshTokenEntity = (refreshToken: string, expiresIn: number, homeAccountId: string, realm: string): MsalRefreshTokenEntity => {
 	const expiresOn = (Math.floor(Date.now() / 1000) + expiresIn).toString();
 
@@ -169,6 +199,13 @@ const buildRefreshTokenEntity = (refreshToken: string, expiresIn: number, homeAc
 	};
 };
 
+/**
+ * Builds an ID token entity.
+ * @param idToken - The ID token.
+ * @param homeAccountId - The home account ID.
+ * @param realm - The realm (tenant ID).
+ * @returns An object representing the ID token entity.
+ */
 const buildIdTokenEntity = (idToken: string, homeAccountId: string, realm: string): MsalCredentialEntity => {
 	return {
 		homeAccountId: homeAccountId,
