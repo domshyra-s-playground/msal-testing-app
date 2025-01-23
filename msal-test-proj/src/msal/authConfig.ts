@@ -1,13 +1,11 @@
 import { BrowserCacheLocation, LogLevel, PublicClientApplication } from "@azure/msal-browser";
 
-//TODO! input your own values below
-const clientId = "TODO - Add clientId";
-const tenantId = "TODO";
-const redirectUri = "https://localhost:3000";
-const clientSecret = "TODO";
-const testUsername = "TODO";
+const clientId = import.meta.env.VITE_CLIENT_ID;
+const clientSecret = import.meta.env.VITE_CLIENT_SECRET;
+const tenantId = import.meta.env.VITE_TENANT_ID;
+const redirectUri = import.meta.env.VITE_REDIRECT_URI;
 
-export { clientId, tenantId, redirectUri, clientSecret, testUsername };
+export { clientId, tenantId, redirectUri, clientSecret };
 
 export const msalConfig = {
 	auth: {

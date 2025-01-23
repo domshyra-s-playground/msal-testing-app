@@ -3,25 +3,21 @@ This app is meant to load a token call from `https://login.microsoftonline.com/y
 
 The motivation is that way the selenium runner can get the tokens and load them into session storage to then run E2E tests with specific users. 
 
-This seems to not work on 2.2 or 3.0 versions of msal.
+There is an authenticated page that should get redirected to after the set sessionStorage button on the homepage is clicked, or a user clicks the link `Login with a page redirect`. The link is meant to test that the app reg is set up correctly, and the session storage is used to show that loadExternalTokens is working. However this is where the issue seems to happen. That will not redirect silently and will pop up a login prompt which is not the expected outcome.
+
+This seems to not work on 2.2 or 3.0 versions of msal when testing the `loadExternalTokens` method.
 
 # Prerequisites
 ## App Registration and Client ID
 
 To set up app registration and client ID, follow these steps:
 
-
 1. **Register the application in Azure AD**:
     - Go to the Azure portal.
     - Navigate to "Azure Active Directory" > "App registrations" > "New registration".
     - Enter a name for the application.
-    - Set the redirect URI to `https://localhost:3000` for local development.
+    - Set the redirect URI to `https://localhost:3000` for local development using the SPA configuration.
     - Click "Register".
-
-2. **Configure API permissions**:
-    - After registration, go to "API permissions".
-    - Click "Add a permission" and select the required APIs and permissions.
-    - Click "Grant admin consent" to grant the permissions.
 
 3. **Create a client secret**:
     - Go to "Certificates & secrets".
@@ -29,8 +25,8 @@ To set up app registration and client ID, follow these steps:
     - Set the expiration period and click "Add".
     - Copy the client secret value and store it securely.
 
-4. **Update the `authConfig.ts` file**:
-    - Update `clientId`, `tenantId`, `redirectUri`, and other relevant fields.
+4. **Update the `.env` file**:
+    - Update `VITE_CLIENT_ID`, `VITE_CLIENT_SECRET`, `VITE_TENANT_ID`, and `VITE_REDIRECT_URI` to match what was put in the app reg.
 
 
 By following these steps, you will have successfully registered your application and configured the client ID in your project.
@@ -71,7 +67,7 @@ Once you get your bearer token, it should be in a format like this
 ```
 
 Then you can paste the whole raw string into the `Set bearer token in sessionStorage` on the homepage. 
-Once that is set the rest and you click the button you should get navigated to the authed page without a redirect with a login prompt.
+Once that is set the rest and you click the button you should get navigated to the `authed page` with a silent login using the session storage via the loadExternalTokens method. However this is popping up a redirect with a login prompt.
 
 However that doesn't appear to be working and this page will appear even tho `loadExternalTokens` is being called and previously once that was set `acquireTokenSilent` would get called using the new sessionStorage items that msal loads. These values appear to be in the browser, but we still are haunted by the login page prompt. Judging by [this](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/testing.md) testing doc this should be set up correctly 
 
