@@ -53,7 +53,13 @@ mkcert -key-file ./.cert/key.pem -cert-file ./.cert/cert.pem "localhost"
 a new .cert folder should be next to the .vscode folder under the `MSAL-TEST-PROJ` folder.
 
 
+then run `npm install` to install the dependencies in the same folder.
+
 # Running the App
+
+run `npm run dev` to start the app or `f5` to debug in the browser if using vscode. (The project will need to be opened from the MSAL-TEST-PROJ folder for this step).
+
+
 make sure you have a call to get a bearer token in postman 
 Something to this effect 
 ![alt text](image.png)
