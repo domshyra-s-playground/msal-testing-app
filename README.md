@@ -19,13 +19,25 @@ To set up app registration and client ID, follow these steps:
     - Set the redirect URI to `https://localhost:3000` for local development using the SPA configuration.
     - Click "Register".
 
+2. **Configure API permissions**:
+    - After registration, go to "API permissions".
+    - Click "Add a permission" and select the required APIs and permissions.
+    - Click "Grant admin consent" to grant the permissions.
+    - These should be for offline._access, openid, profile.
+
 3. **Create a client secret**:
     - Go to "Certificates & secrets".
     - Click "New client secret" and add a description.
     - Set the expiration period and click "Add".
     - Copy the client secret value and store it securely.
 
-4. **Update the `.env` file**:
+4. **Add User.Read Scope**
+    - Go to "Expose an API".
+    - Click "Add a scope" and add `User.Read` as a scope.
+
+![alt text](user-read-scope.png)
+
+5. **Update the `.env` file**:
     - Update `VITE_CLIENT_ID`, `VITE_CLIENT_SECRET`, `VITE_TENANT_ID`, and `VITE_REDIRECT_URI` to match what was put in the app reg.
 
 
@@ -62,7 +74,7 @@ run `npm run dev` to start the app or `f5` to debug in the browser if using vsco
 
 make sure you have a call to get a bearer token in postman 
 Something to this effect 
-![alt text](image.png)
+![alt text](postman-ex.png)
 
 make sure your scope has these values `openid profile offline_access your-clientId/User.Read` where you'd replace `your-clientId` with your client id from your app registration. 
 
