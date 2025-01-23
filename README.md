@@ -105,3 +105,11 @@ Also tried to use one instance of the msal object and that didn't work either.
 ```
 
 also tried to call the `acquireToken` function after selenium tokens are set and manually would set the `instance.setActiveAccount(silentRequest.account)` with no effect. 
+
+```javascript 
+    await pca.initialize();
+    const authenticationResult = await pca.getTokenCache().loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
+    pca.setActiveAccount(authenticationResult.account);
+
+    console.log(JSON.stringify(authenticationResult));
+```
