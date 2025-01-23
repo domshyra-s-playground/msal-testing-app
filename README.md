@@ -69,7 +69,11 @@ Once you get your bearer token, it should be in a format like this
 Then you can paste the whole raw string into the `Set bearer token in sessionStorage` on the homepage. 
 Once that is set the rest and you click the button you should get navigated to the `authed page` with a silent login using the session storage via the loadExternalTokens method. However this is popping up a redirect with a login prompt.
 
-However that doesn't appear to be working and this page will appear even tho `loadExternalTokens` is being called and previously once that was set `acquireTokenSilent` would get called using the new sessionStorage items that msal loads. These values appear to be in the browser, but we still are haunted by the login page prompt. Judging by [this](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/testing.md) testing doc this should be set up correctly 
+However that doesn't appear to be working and this page will appear even tho `loadExternalTokens` is being called and previously once that was set `acquireTokenSilent` would get called using the new sessionStorage items that msal loads. These values appear to be in the browser, but we still are haunted by the login page prompt. Judging by [this](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/testing.md) testing doc this should be set up correctly
+
+Here is what the app session storage looks like after `loadExternalTokens` is called 
+
+![alt text](sessionStorage-after-btn-click.png)
 
 
 ## things tried to get this to work

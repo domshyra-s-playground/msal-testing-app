@@ -23,7 +23,6 @@ const UnauthedPage = () => {
 
 			<h1>Silent Login Via loadExternalTokens</h1>
 			<p>make sure you have a call to get a bearer token in postman</p>
-			<p>Something to this effect</p>
 			<img src="image.png" alt="alt text" width={"100%"} />
 			<p>
 				make sure your scope has these values <code>openid profile offline_access your-clientId/User.Read</code> where you'd replace{" "}
@@ -45,11 +44,14 @@ const UnauthedPage = () => {
 			</div>
 			<p>
 				After pasting the result into the textarea and hitting the "Set sessionStorage & silent redirect" button. You should get navigated to
-				the <code>authed page</code> with a silent login using the session storage via the loadExternalTokens method. However this is popping
-				up a redirect with a login prompt and from what I can tell all the proper tokens are set up in the session storage after the
-				loadExternalTokens call is executed.
+				the <code>authed page</code> with a silent login using the session storage via the loadExternalTokens method.
 			</p>
-			<img src="sessionStorage-after-btn-click.png" alt="alt text" width={"100%"} />
+			<p>
+				However this is popping up a redirect with a login prompt, and from what I can tell all the proper tokens are set up in the session
+				storage after the loadExternalTokens call is executed. (img in the readme)
+			</p>
+
+			<h4>Paste token result below</h4>
 			<textarea value={bearerToken} onChange={(e) => setBearerToken(e.target.value)} rows={5} cols={40} />
 			<br />
 			<br />
