@@ -1,16 +1,17 @@
 import { AccountInfo, InteractionStatus, InteractionType } from "@azure/msal-browser";
+import { AuthorizationState, checkForSeleniumTokensInSessionStorage } from "@msal/authorization";
 import { MsalAuthenticationTemplate, useIsAuthenticated, useMsal } from "@azure/msal-react";
+import { useCallback, useEffect } from "react";
 
 import { Outlet } from "react-router-dom";
 import { useAppSelector } from "@redux/hooks";
-import useAuthentication from "../../src/hooks/useAuthentication";
-import { useEffect } from "react";
+import useAuthentication from "@hooks/useAuthentication";
 
 function ProtectedRoute() {
 	useAuthentication();
-	const { inProgress }: { inProgress: InteractionStatus; accounts: AccountInfo[] } = useMsal();
+	const { inProgress, accounts }: { inProgress: InteractionStatus; accounts: AccountInfo[] } = useMsal();
 	const isAuthenticated = useIsAuthenticated();
-	const authorization = useAppSelector((state) => state.authorization);
+	const authorization = useAppSelector((state) => state.authorization as AuthorizationState);
 
 	//Note isAuthenticated is just here to console log
 
@@ -21,16 +22,20 @@ function ProtectedRoute() {
 		} else {
 			console.log("User is NOT authenticated via useIsAuthenticated");
 			console.log("inProgress: ", inProgress);
-			const x = authorization?.account ? (JSON.parse(authorization?.account) as AccountInfo) : "";
-			if (x instanceof Object) {
-				console.log(JSON.stringify(x));
-			}
 		}
-	}, [isAuthenticated, authorization.accessToken, inProgress, authorization?.account]);
+	}, [isAuthenticated, authorization.accessToken, inProgress]);
+
+	useEffect(() => {
+		console.log("Account is ", accounts[0]);
+	}, [accounts]);
+
+	const seleniumRunner = useCallback(() => {
+		return checkForSeleniumTokensInSessionStorage();
+	}, []);
 
 	return (
-		<MsalAuthenticationTemplate interactionType={InteractionType.Redirect}>
-			{authorization.accessToken !== null ? <Outlet /> : "Not authenticated"}
+		<MsalAuthenticationTemplate interactionType={seleniumRunner() ? InteractionType.Silent : InteractionType.Redirect}>
+			{authorization.accessToken !== null && isAuthenticated ? <Outlet /> : "Not authenticated"}
 		</MsalAuthenticationTemplate>
 	);
 }

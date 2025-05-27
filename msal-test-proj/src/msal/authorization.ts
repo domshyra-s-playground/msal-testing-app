@@ -1,5 +1,5 @@
-import { IdTokenClaims, TenantProfile } from "@azure/msal-browser";
-import { clientId, readScope } from "src/msal/authConfig";
+import { AccountInfo, IdTokenClaims, TenantProfile } from "@azure/msal-browser";
+import { clientId, readScope } from "@msal/authConfig";
 
 import { jwtDecode } from "jwt-decode";
 
@@ -13,6 +13,7 @@ export type AuthorizationState = {
 	name: string | null | undefined;
 	username: string | null;
 	extExpiresOn: string | null;
+	account?: AccountInfo;
 };
 
 export interface MsalCredentialEntity {
@@ -72,7 +73,6 @@ interface msJwtPayload {
 }
 
 const target = ["openid", "profile", "offline_access", readScope.toLowerCase()].join(" ");
-
 
 /**
  * Logs in with a bearer token.
@@ -150,11 +150,13 @@ const buildAccessTokenEntity = (tokenResponse: AadTokenResponse, homeAccountId: 
  */
 const buildAccountEntity = (
 	homeAccountId: string,
-	realm: any,
+	realm: string,
 	localAccountId: string,
 	username: string,
 	name: string,
-	claims: any
+	claims: IdTokenClaims & {
+		[key: string]: unknown;
+	}
 ): MsalAccountEntity => {
 	const clientInfo = btoa(JSON.stringify({ uid: localAccountId, utid: realm }));
 
@@ -172,8 +174,14 @@ const buildAccountEntity = (
 		name: name,
 		clientInfo: clientInfo,
 		idTokenClaims: claims,
-		tenantProfiles: new Map<string, TenantProfile>(),
+		tenantProfiles: buildTenantProfile(realm, localAccountId, name),
 	};
+};
+
+const buildTenantProfile = (tenantId: string, localAccountId: string, name: string) => {
+	return new Map([
+		[tenantId, { isHomeTenant: true, tenantId: tenantId, localAccountId: localAccountId, name: name, environment: "login.windows.net" }],
+	]);
 };
 
 /**
@@ -218,4 +226,38 @@ const buildIdTokenEntity = (idToken: string, homeAccountId: string, realm: strin
 	};
 };
 
-export { loginWithBearerToken };
+const checkForSeleniumTokensInSessionStorage = () => {
+	//Used for Msal to get a token in dev/local for testing
+	const {
+		seleniumIdToken,
+		seleniumAccount,
+		seleniumAccessToken,
+		seleniumRefreshToken,
+	}: {
+		seleniumIdToken: MsalCredentialEntity;
+		seleniumAccount: MsalAccountEntity;
+		seleniumAccessToken: MsalAccessTokenEntity;
+		seleniumRefreshToken: MsalRefreshTokenEntity;
+	} = retrieveAuthenticationTokens();
+
+	//We need to have default and User.Read for scopes for this to work
+	if (
+		Object.keys(seleniumIdToken).length !== 0 &&
+		Object.keys(seleniumAccount).length !== 0 &&
+		Object.keys(seleniumAccessToken).length !== 0 &&
+		Object.keys(seleniumRefreshToken).length !== 0
+	) {
+		return true;
+	}
+	return false;
+};
+
+function retrieveAuthenticationTokens() {
+	const seleniumIdToken: MsalCredentialEntity = JSON.parse(window.sessionStorage.getItem("seleniumIdTokenKey") ?? "{}");
+	const seleniumAccount: MsalAccountEntity = JSON.parse(window.sessionStorage.getItem("seleniumAccountKey") ?? "{}");
+	const seleniumAccessToken: MsalAccessTokenEntity = JSON.parse(window.sessionStorage.getItem("seleniumAccessTokenKey") ?? "{}");
+	const seleniumRefreshToken: MsalRefreshTokenEntity = JSON.parse(window.sessionStorage.getItem("seleniumRefreshTokenKey") ?? "{}");
+	return { seleniumIdToken, seleniumAccount, seleniumAccessToken, seleniumRefreshToken };
+}
+
+export { loginWithBearerToken, retrieveAuthenticationTokens, checkForSeleniumTokensInSessionStorage, buildTenantProfile };
