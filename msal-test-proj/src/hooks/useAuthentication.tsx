@@ -18,7 +18,7 @@ import {
 	checkForSeleniumTokensInSessionStorage,
 	retrieveAuthenticationTokens,
 } from "@msal/authorization";
-import { defaultScope, msalConfig, msalInstance, scopes, tenantId } from "@msal/authConfig";
+import { defaultScope, msalConfig, scopes, tenantId } from "@msal/msalConfig";
 import { isLocalOrDevEnvironment, isProdEnv } from "@tools/env";
 import { useAppDispatch, useAppSelector } from "@redux/hooks";
 import { useCallback, useEffect } from "react";
@@ -29,7 +29,6 @@ import { setAuthorization } from "@slices/authorization";
 import { useMsal } from "@azure/msal-react";
 import { useState } from "react";
 
-//TODO: this still seems to not set up the idTokenClaims properly, but not sure why. Works in the main app from login in manually
 /**
  * Sets up the authentication for the app from MSAL and handles token expiration.
  */
@@ -55,18 +54,18 @@ export default function useAuthentication() {
 				username: auth.account.username,
 				expiresOn: JSON.stringify(auth.expiresOn),
 				extExpiresOn: JSON.stringify(auth.extExpiresOn),
-				account: {
-					homeAccountId: auth.account.homeAccountId,
-					environment: auth.account.environment,
-					tenantId: auth.account.tenantId,
-					username: auth.account.username,
-					localAccountId: auth.account.localAccountId,
-					name: auth.account.name,
-					authorityType: auth.account.authorityType,
-					idTokenClaims: auth.account.idTokenClaims,
-					idToken: auth.account.idToken,
-					tenantProfiles: buildTenantProfile(tenantId, auth.account.localAccountId, auth.account.name!), // Build tenant profile for the account
-				},
+				// account: {
+				// 	homeAccountId: auth.account.homeAccountId,
+				// 	environment: auth.account.environment,
+				// 	tenantId: auth.account.tenantId,
+				// 	username: auth.account.username,
+				// 	localAccountId: auth.account.localAccountId,
+				// 	name: auth.account.name,
+				// 	authorityType: auth.account.authorityType,
+				// 	idTokenClaims: auth.account.idTokenClaims,
+				// 	idToken: auth.account.idToken,
+				// 	tenantProfiles: buildTenantProfile(tenantId, auth.account.localAccountId, auth.account.name!), // Build tenant profile for the account
+				// },
 			};
 
 			dispatch(setAuthorization(transformedAuth));
@@ -119,7 +118,7 @@ export default function useAuthentication() {
 			console.log("Failed to acquire Token");
 			console.error(error);
 		}
-	}, [instance, accessTokenConfig, authorize, expiresOn]);
+	}, [instance, accessTokenConfig, accounts, authorize, expiresOn]);
 
 	// Acquire a token if there is no token or the token has expired
 	// This should be called via navs in ProtectedRoute, and will be skipped if it's a selenium test (which looks at the session storage for tokens)
@@ -222,17 +221,10 @@ async function setTokenForSelenium() {
 	const pca = new PublicClientApplication(msalConfig);
 
 	try {
-		await msalInstance.initialize();
-		await msalInstance.handleRedirectPromise();
 		await pca.initialize();
 		pca.getAllAccounts();
 		const authenticationResult = await pca.getTokenCache().loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
-		const authenticationResult2 = await msalInstance.getTokenCache().loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
 
-		pca.setActiveAccount(authenticationResult.account);
-		msalInstance.setActiveAccount(authenticationResult2.account);
-
-		console.log(JSON.stringify(authenticationResult));
 		window.sessionStorage.removeItem("seleniumIdTokenKey");
 		window.sessionStorage.removeItem("seleniumAccountKey");
 		window.sessionStorage.removeItem("seleniumAccessTokenKey");

@@ -32,7 +32,7 @@ const authorization = createSlice({
 			if (!action.payload.fromCache || state.accessToken !== action.payload.accessToken) {
 				return (state = {
 					accessToken: action.payload.accessToken,
-					account: action.payload.account,
+					// account: action.payload.account,
 					expiresOn: action.payload.expiresOn,
 					extExpiresOn: action.payload.extExpiresOn,
 					fromCache: action.payload.fromCache,

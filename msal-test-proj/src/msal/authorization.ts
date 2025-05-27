@@ -1,5 +1,5 @@
 import { AccountInfo, IdTokenClaims, TenantProfile } from "@azure/msal-browser";
-import { clientId, readScope } from "@msal/authConfig";
+import { clientId, readScope } from "@msal/msalConfig";
 
 import { jwtDecode } from "jwt-decode";
 
@@ -13,7 +13,7 @@ export type AuthorizationState = {
 	name: string | null | undefined;
 	username: string | null;
 	extExpiresOn: string | null;
-	account?: AccountInfo;
+	// account?: AccountInfo;
 };
 
 export interface MsalCredentialEntity {

@@ -5,7 +5,7 @@ import { MsalProvider } from "@azure/msal-react";
 import { Provider as ReduxProvider } from "react-redux";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { msalInstance } from "@msal/authConfig.ts";
+import { msalInstance } from "@msal/msalConfig.ts";
 import setupStore from "@redux/store.ts";
 
 const store = setupStore({});
