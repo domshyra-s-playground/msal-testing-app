@@ -1,4 +1,5 @@
 import {
+	AccountInfo,
 	AuthenticationResult,
 	AuthenticationScheme,
 	ExternalTokenResponse,
@@ -7,8 +8,17 @@ import {
 	PublicClientApplication,
 	SilentRequest,
 } from "@azure/msal-browser";
-import { AuthorizationState, MsalAccessTokenEntity, MsalAccountEntity, MsalCredentialEntity, MsalRefreshTokenEntity } from "../msal/authorization";
-import { defaultScope, msalConfig, scopes, tenantId } from "../msal/authConfig";
+import {
+	AuthorizationState,
+	MsalAccessTokenEntity,
+	MsalAccountEntity,
+	MsalCredentialEntity,
+	MsalRefreshTokenEntity,
+	buildTenantProfile,
+	checkForSeleniumTokensInSessionStorage,
+	retrieveAuthenticationTokens,
+} from "@msal/authorization";
+import { defaultScope, msalConfig, scopes, tenantId } from "@msal/msalConfig";
 import { isLocalOrDevEnvironment, isProdEnv } from "@tools/env";
 import { useAppDispatch, useAppSelector } from "@redux/hooks";
 import { useCallback, useEffect } from "react";
@@ -19,12 +29,11 @@ import { setAuthorization } from "@slices/authorization";
 import { useMsal } from "@azure/msal-react";
 import { useState } from "react";
 
-//TODO: this still seems to not set up the idTokenClaims properly, but not sure why. Works in the main app from login in manually
 /**
  * Sets up the authentication for the app from MSAL and handles token expiration.
  */
 export default function useAuthentication() {
-	const authorization = useAppSelector((state: any) => state.authorization);
+	const authorization = useAppSelector((state) => state.authorization as AuthorizationState);
 	dayjs.extend(duration);
 	const { instance, accounts } = useMsal();
 
@@ -62,19 +71,25 @@ export default function useAuthentication() {
 		initializeMsal();
 	}, [instance]);
 
+	const accessTokenConfig = useCallback((account: AccountInfo) => {
+		return {
+			scopes: [defaultScope],
+			account: {
+				...account, // Use the first account if available
+				tenantProfiles: buildTenantProfile(tenantId, account.localAccountId, account.name!), // Build tenant profile for the account
+			},
+		} as SilentRequest;
+	}, []);
+
 	/**
 	 * Acquire a token for the user
 	 */
 	const acquireToken = useCallback(async () => {
-		const accessTokenConfig: SilentRequest = {
-			scopes: [defaultScope],
-			account: accounts[0],
-		};
 		try {
 			console.log("calling acquireTokenSilent");
 			//MSAL uses a cache to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed.
 			//It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the acquireTokenSilent method.
-			const tokenResponse = await instance.acquireTokenSilent(accessTokenConfig);
+			const tokenResponse = await instance.acquireTokenSilent(accessTokenConfig(accounts[0]));
 			//This will only be set if the token is not in the cache
 			authorize({ ...tokenResponse });
 			console.log("Token acquired", tokenResponse.accessToken);
@@ -91,12 +106,12 @@ export default function useAuthentication() {
 			console.log("Failed to acquire Token");
 			console.error(error);
 		}
-	}, [accounts, instance, authorize, expiresOn]);
+	}, [instance, accessTokenConfig, accounts, authorize, expiresOn]);
 
 	// Acquire a token if there is no token or the token has expired
-	//This should be called via navs in ProtectedRoute
+	// This should be called via navs in ProtectedRoute, and will be skipped if it's a selenium test (which looks at the session storage for tokens)
 	useEffect(() => {
-		if (authorization?.accessToken === null && initialized) {
+		if (authorization?.accessToken === null && initialized && !checkForSeleniumTokensInSessionStorage()) {
 			console.log("New Token for redux");
 			acquireToken();
 		}
@@ -116,14 +131,24 @@ export default function useAuthentication() {
 		}
 	}, [expiresOn, acquireToken]);
 
+	//This use effect is specifically for Selenium testing, which uses session storage to set tokens
 	useEffect(() => {
 		const selenium = async () => {
-			if (isLocalOrDevEnvironment() && initialized) {
-				await setTokenForSelenium();
+			if (isLocalOrDevEnvironment() && initialized && checkForSeleniumTokensInSessionStorage()) {
+				const externalTokenResult = await setTokenForSelenium(); //tokens will be removed from session storage after this call
+				if (externalTokenResult) {
+					//If we have a token, we can set it in the redux store
+					instance.setActiveAccount(externalTokenResult.account);
+					const tokenResponse = await instance.acquireTokenSilent(accessTokenConfig(externalTokenResult.account));
+					authorize({ ...tokenResponse });
+					setExpiresOn(JSON.stringify(tokenResponse.expiresOn));
+				} else {
+					console.warn("No token found for Selenium testing");
+				}
 			}
 		};
 		selenium();
-	}, [initialized]);
+	}, [accessTokenConfig, authorize, initialized, instance]);
 }
 
 /**
@@ -131,67 +156,75 @@ export default function useAuthentication() {
  *
  */
 async function setTokenForSelenium() {
+	if (!checkForSeleniumTokensInSessionStorage()) {
+		return null;
+	}
 	//Used for Msal to get a token in dev/local for testing
-	const seleniumIdToken: MsalCredentialEntity = JSON.parse(window.sessionStorage.getItem("seleniumIdTokenKey") ?? "{}");
-	const seleniumAccount: MsalAccountEntity = JSON.parse(window.sessionStorage.getItem("seleniumAccountKey") ?? "{}");
-	const seleniumAccessToken: MsalAccessTokenEntity = JSON.parse(window.sessionStorage.getItem("seleniumAccessTokenKey") ?? "{}");
-	const seleniumRefreshToken: MsalRefreshTokenEntity = JSON.parse(window.sessionStorage.getItem("seleniumRefreshTokenKey") ?? "{}");
+	const {
+		seleniumIdToken,
+		seleniumAccount,
+		seleniumAccessToken,
+		seleniumRefreshToken,
+	}: {
+		seleniumIdToken: MsalCredentialEntity;
+		seleniumAccount: MsalAccountEntity;
+		seleniumAccessToken: MsalAccessTokenEntity;
+		seleniumRefreshToken: MsalRefreshTokenEntity;
+	} = retrieveAuthenticationTokens();
 
 	//We need to have default and User.Read for scopes for this to work
-	if (
-		Object.keys(seleniumIdToken).length !== 0 &&
-		Object.keys(seleniumAccount).length !== 0 &&
-		Object.keys(seleniumAccessToken).length !== 0 &&
-		Object.keys(seleniumRefreshToken).length !== 0
-	) {
-		console.log("Setting token for Selenium");
-		const silentRequest: SilentRequest = {
-			scopes: scopes,
-			authority: `https://login.microsoftonline.com/${tenantId}`,
-			account: {
-				homeAccountId: seleniumAccount.homeAccountId,
-				environment: seleniumAccount.environment,
-				tenantId: tenantId,
-				username: seleniumAccount.username,
-				localAccountId: seleniumAccount.localAccountId,
-				name: seleniumAccount.name,
-				authorityType: seleniumAccount.authorityType,
-				idTokenClaims: seleniumAccount.idTokenClaims,
-				idToken: seleniumIdToken.secret,
-			},
-		};
+	console.log("Setting token for Selenium");
+	const silentRequest: SilentRequest = {
+		scopes: scopes,
+		authority: `https://login.microsoftonline.com/${tenantId}`,
+		account: {
+			homeAccountId: seleniumAccount.homeAccountId,
+			environment: seleniumAccount.environment,
+			tenantId: tenantId,
+			username: seleniumAccount.username,
+			localAccountId: seleniumAccount.localAccountId,
+			name: seleniumAccount.name,
+			authorityType: seleniumAccount.authorityType,
+			idTokenClaims: seleniumAccount.idTokenClaims,
+			idToken: seleniumIdToken.secret,
+			tenantProfiles: buildTenantProfile(tenantId, seleniumAccount.localAccountId, seleniumAccount.name), //note: this is build because JS doesn't support this property when Json.stringify is called
+		},
+	};
 
-		const serverResponse: ExternalTokenResponse = {
-			id_token: seleniumIdToken.secret,
-			token_type: AuthenticationScheme.BEARER,
-			scope: scopes.join(" "),
-			access_token: seleniumAccessToken.secret,
-			refresh_token: seleniumRefreshToken.secret,
-			expires_in: 3599,
-			client_info: seleniumAccount.clientInfo,
-		};
+	const serverResponse: ExternalTokenResponse = {
+		id_token: seleniumIdToken.secret,
+		token_type: AuthenticationScheme.BEARER,
+		scope: scopes.join(" "),
+		access_token: seleniumAccessToken.secret,
+		refresh_token: seleniumRefreshToken.secret,
+		expires_in: 3599,
+		client_info: seleniumAccount.clientInfo,
+	};
 
-		const loadTokenOptions: LoadTokenOptions = {
-			clientInfo: seleniumAccount.clientInfo,
-			extendedExpiresOn: 6599,
-		};
+	const loadTokenOptions: LoadTokenOptions = {
+		clientInfo: seleniumAccount.clientInfo,
+		extendedExpiresOn: 6599,
+	};
 
-		const pca = new PublicClientApplication(msalConfig);
+	const pca = new PublicClientApplication(msalConfig);
 
-		try {
-			await pca.initialize();
-			const authenticationResult = await pca.getTokenCache().loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
+	try {
+		await pca.initialize();
+		pca.getAllAccounts();
+		const authenticationResult = await pca.getTokenCache().loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
 
-			console.log(JSON.stringify(authenticationResult));
-			window.sessionStorage.removeItem("seleniumIdTokenKey");
-			window.sessionStorage.removeItem("seleniumAccountKey");
-			window.sessionStorage.removeItem("seleniumAccessTokenKey");
-			window.sessionStorage.removeItem("seleniumRefreshTokenKey");
-			console.log("Tokens set for Selenium");
-		} catch (error: any) {
-			console.error(error);
-		}
+		window.sessionStorage.removeItem("seleniumIdTokenKey");
+		window.sessionStorage.removeItem("seleniumAccountKey");
+		window.sessionStorage.removeItem("seleniumAccessTokenKey");
+		window.sessionStorage.removeItem("seleniumRefreshTokenKey");
+		console.log("Tokens set for Selenium");
+
+		return authenticationResult;
+	} catch (error: any) {
+		console.error(error);
 	}
+
+	return null;
 }
 
 /**

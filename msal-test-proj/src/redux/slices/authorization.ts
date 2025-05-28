@@ -1,17 +1,17 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
-import { AuthorizationState } from "../../interfaces/authorization";
+import { AuthorizationState } from "@msal/authorization";
 
 const initialState: AuthorizationState = {
 	accessToken: null,
-	fromCache: false,
 	expiresOn: null,
+	extExpiresOn: null,
+	fromCache: false,
+	name: null,
 	scopes: [],
 	uniqueId: null,
-	userRoles: [],
-	name: null,
 	username: null,
-	extExpiresOn: null,
+	userRoles: [],
 };
 
 /* istanbul ignore next */
@@ -32,14 +32,14 @@ const authorization = createSlice({
 			if (!action.payload.fromCache || state.accessToken !== action.payload.accessToken) {
 				return (state = {
 					accessToken: action.payload.accessToken,
-					fromCache: action.payload.fromCache,
 					expiresOn: action.payload.expiresOn,
+					extExpiresOn: action.payload.extExpiresOn,
+					fromCache: action.payload.fromCache,
+					name: action.payload.name,
 					scopes: action.payload.scopes,
 					uniqueId: action.payload.uniqueId,
-					userRoles: action.payload.userRoles,
 					username: action.payload.username,
-					name: action.payload.name,
-					extExpiresOn: action.payload.extExpiresOn,
+					userRoles: action.payload.userRoles,
 				});
 			} else {
 				return state;
