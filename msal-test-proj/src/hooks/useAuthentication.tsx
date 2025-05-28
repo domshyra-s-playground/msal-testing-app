@@ -54,18 +54,6 @@ export default function useAuthentication() {
 				username: auth.account.username,
 				expiresOn: JSON.stringify(auth.expiresOn),
 				extExpiresOn: JSON.stringify(auth.extExpiresOn),
-				// account: {
-				// 	homeAccountId: auth.account.homeAccountId,
-				// 	environment: auth.account.environment,
-				// 	tenantId: auth.account.tenantId,
-				// 	username: auth.account.username,
-				// 	localAccountId: auth.account.localAccountId,
-				// 	name: auth.account.name,
-				// 	authorityType: auth.account.authorityType,
-				// 	idTokenClaims: auth.account.idTokenClaims,
-				// 	idToken: auth.account.idToken,
-				// 	tenantProfiles: buildTenantProfile(tenantId, auth.account.localAccountId, auth.account.name!), // Build tenant profile for the account
-				// },
 			};
 
 			dispatch(setAuthorization(transformedAuth));

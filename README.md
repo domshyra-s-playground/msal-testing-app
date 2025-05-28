@@ -1,11 +1,20 @@
 # Msal testing project
 This app is meant to load a token call from `https://login.microsoftonline.com/your-tenantId/oauth2/v2.0/token` into the sessionStorage and then use Msal `loadExternalTokens` and have no redirect from the MS login page pop up. 
 
-The motivation is that way the selenium runner can get the tokens and load them into session storage to then run E2E tests with specific users. 
+The motivation is that way the selenium runner can get the tokens and load them into session storage to then run E2E tests with specific users without having to log in every time or having the redirect pop up.
 
 There is an authenticated page that should get redirected to after the set sessionStorage button on the homepage is clicked, or a user clicks the link `Login with a page redirect`. The link is meant to test that the app reg is set up correctly, and the session storage is used to show that loadExternalTokens is working. However this is where the issue seems to happen. That will not redirect silently and will pop up a login prompt which is not the expected outcome.
 
 This seems to not work on 2.2 or 3.0 versions of msal when testing the `loadExternalTokens` method.
+
+## Note this shouldn't need to be InteractionType.Silent  
+
+![protectedRoute.tsx](protectedRoutetsx.png) you can change the vite variable in the .env file to `VITE_INTERACTION_TYPE=Redirect` and it should still work, but it doesn't. This will still pop up a login prompt.
+
+most of the code for this is in the `useAuthentication.tsx` file, which is where the `loadExternalTokens` method is called.
+
+![use auth hook](hook.png)
+
 
 # Prerequisites
 ## App Registration and Client ID
@@ -94,22 +103,4 @@ Here is what the app session storage looks like after `loadExternalTokens` is ca
 ![alt text](sessionStorage-after-btn-click.png)
 
 
-## things tried to get this to work
-Also tried to use one instance of the msal object and that didn't work either. 
-```javascript
-    await msalInstance.initialize();
-    await msalInstance.handleRedirectPromise();
-    const authenticationResult = await msalInstance.getTokenCache().loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
 
-    console.log(JSON.stringify(authenticationResult));
-```
-
-also tried to call the `acquireToken` function after selenium tokens are set and manually would set the `instance.setActiveAccount(silentRequest.account)` with no effect. 
-
-```javascript 
-    await pca.initialize();
-    const authenticationResult = await pca.getTokenCache().loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
-    pca.setActiveAccount(authenticationResult.account);
-
-    console.log(JSON.stringify(authenticationResult));
-```

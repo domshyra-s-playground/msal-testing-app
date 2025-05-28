@@ -1,4 +1,4 @@
-import { AccountInfo, IdTokenClaims, TenantProfile } from "@azure/msal-browser";
+import { IdTokenClaims, TenantProfile } from "@azure/msal-browser";
 import { clientId, readScope } from "@msal/msalConfig";
 
 import { jwtDecode } from "jwt-decode";
@@ -13,7 +13,6 @@ export type AuthorizationState = {
 	name: string | null | undefined;
 	username: string | null;
 	extExpiresOn: string | null;
-	// account?: AccountInfo;
 };
 
 export interface MsalCredentialEntity {
@@ -260,4 +259,4 @@ function retrieveAuthenticationTokens() {
 	return { seleniumIdToken, seleniumAccount, seleniumAccessToken, seleniumRefreshToken };
 }
 
-export { loginWithBearerToken, retrieveAuthenticationTokens, checkForSeleniumTokensInSessionStorage, buildTenantProfile };
+export { buildTenantProfile, checkForSeleniumTokensInSessionStorage, loginWithBearerToken, retrieveAuthenticationTokens };
