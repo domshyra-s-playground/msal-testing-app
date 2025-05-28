@@ -9,7 +9,7 @@ This seems to not work on 2.2 or 3.0 versions of msal when testing the `loadExte
 
 ## Note this shouldn't need to be InteractionType.Silent  
 
-![protectedRoute.tsx](protectedRoutetsx.png) you can change the vite variable in the .env file to `VITE_INTERACTION_TYPE=Redirect` and it should still work, but it doesn't. This will still pop up a login prompt.
+![protectedRoute.tsx](protected-route.png) you can change the vite variable in the .env file to `VITE_INTERACTION_TYPE=Redirect` and it should still work, but it doesn't. This will still pop up a login prompt.
 
 most of the code for this is in the `useAuthentication.tsx` file, which is where the `loadExternalTokens` method is called.
 
